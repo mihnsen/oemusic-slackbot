@@ -17,12 +17,14 @@ app.get('/', function (req, res) {
 var driver = new webdriver.Builder().
      withCapabilities(webdriver.Capabilities.chrome()).
      build();
+
 function play(url) {
   driver.get(url);
 }
 
 function stop() {
-  driver.quit();
+  if(driver != undefined)
+    driver.get('http://ownego.com');
 }
 
 app.post('/music', function(req, res, next) {
