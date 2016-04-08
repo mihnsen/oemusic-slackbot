@@ -35,6 +35,16 @@ function isURL(str) {
      return str.length < 2083 && url.test(str);
 }
 
+
+function run_cmd(cmd, args, callBack ) {
+    var spawn = require('child_process').spawn;
+    var child = spawn(cmd, args);
+    var resp = "";
+
+    child.stdout.on('data', function (buffer) { resp += buffer.toString() });
+    child.stdout.on('end', function() { callBack (resp) });
+}
+
 app.post('/music', function(req, res, next) {
   var commands = req.body.text.split(' ');
   var user = req.body.user_name;
@@ -50,6 +60,30 @@ app.post('/music', function(req, res, next) {
     url = isURL(url)?url:lastUrl;
   }
 
+
+  // Volume control
+  if(action == 'volume') {
+    var volume;
+    if(commands.length > 1) volume = commands[1];
+
+    var sound = "5%-";
+    var msg = 'I don\'t know what to do?';
+    if(volume == 'up') {
+        var sound = "5%+";
+    }
+
+    if(volume == 'up' || volume == 'down') {
+        run_cmd( "amixer", ["-D", "pulse", "sset", "Master", sound], function(text) {
+            console.log(text);
+        });
+        msg = 'Volume change '+sound;
+    }
+    return res.status(200).json({
+      text : msg
+    });
+  }
+
+  // Control
   lastUrl = url;
   if(action == 'play') {
     play(url);
